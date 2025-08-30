@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthcare Fund Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .chat-bubble-user {
+            background-color: #2563eb;
+            color: white;
+            border-radius: 1rem;
+            border-bottom-right-radius: 0;
+            padding: 0.75rem 1rem;
+            max-width: 70%;
+            align-self: flex-end;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .chat-bubble-bot {
+            background-color: #e5e7eb;
+            color: #1f2937;
+            border-radius: 1rem;
+            border-bottom-left-radius: 0;
+            padding: 0.75rem 1rem;
+            max-width: 70%;
+            align-self: flex-start;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="min-h-screen flex flex-col items-center p-4 bg-gray-100">
+        <div class="w-full max-w-2xl bg-gray-800 text-white p-6 rounded-t-2xl flex items-center justify-between shadow-lg">
+            <div class="flex items-center space-x-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944c-1.255 0-2.51.139-3.72.416M6.924 18.22C4.168 16.572 2 13.568 2 10.5a10 10 0 0110-10c2.973 0 5.761 1.093 7.844 2.923" />
+                </svg>
+                <h1 class="text-2xl font-semibold">Arogyam</h1>
+            </div>
+            <div class="flex space-x-2">
+                <button id="patient-btn" class="px-4 py-2 bg-blue-500 rounded-full hover:bg-blue-600 transition-colors">Patient</button>
+                <button id="org-btn" class="px-4 py-2 bg-gray-600 rounded-full hover:bg-gray-700 transition-colors">Organization</button>
+            </div>
+        </div>
+        
+        <div id="patient-view" class="w-full max-w-2xl p-6 bg-white rounded-b-2xl shadow-lg flex flex-col h-[70vh]">
+            <div class="w-full h-full flex flex-col items-center justify-center p-4">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Patient View</h2>
+                <div class="flex-1 w-full flex flex-col">
+                    <div id="messages" class="flex-1 overflow-y-auto space-y-4 p-4 rounded-lg bg-gray-50 mb-4 flex flex-col">
+                        <div class="flex justify-start">
+                            <div class="chat-bubble-bot">
+                                Hello, I am your healthcare assistant. How can I help you today?
+                            </div>
+                        </div>
+                    </div>
+        
+                    <form id="chat-form" class="flex space-x-2">
+                        <input
+                            type="text"
+                            id="user-input"
+                            placeholder="Type your message..."
+                            class="flex-1 p-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button
+                            type="submit"
+                            class="bg-blue-500 text-white p-3 rounded-full hover:bg-blue-600 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transform rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="org-view" class="w-full max-w-2xl p-6 bg-white rounded-b-2xl shadow-lg flex-col items-center hidden h-[70vh]">
+            <div class="w-full h-full flex flex-col items-center p-4">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Organization View</h2>
+                <div class="flex-1 w-full overflow-y-auto">
+                    <ul id="requests-list" class="space-y-4">
+                        <li class="p-4 bg-gray-50 rounded-lg shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900">Patient Fund Request</h3>
+                            <p class="text-sm text-gray-600 mt-1">Status: Pending</p>
+                            <p class="text-sm text-gray-600 mt-1">Patient ID: <span class="font-mono">1a2b3c4d5e</span></p>
+                        </li>
+                        <li class="p-4 bg-gray-50 rounded-lg shadow-sm">
+                            <h3 class="text-lg font-semibold text-gray-900">Fund Request for Surgery</h3>
+                            <p class="text-sm text-gray-600 mt-1">Status: Pending</p>
+                            <p class="text-sm text-gray-600 mt-1">Patient ID: <span class="font-mono">6f7g8h9i0j</span></p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const messagesContainer = document.getElementById('messages');
+            const form = document.getElementById('chat-form');
+            const input = document.getElementById('user-input');
+            const patientBtn = document.getElementById('patient-btn');
+            const orgBtn = document.getElementById('org-btn');
+            const patientView = document.getElementById('patient-view');
+            const orgView = document.getElementById('org-view');
+
+            const addMessage = (text, sender) => {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('flex', sender === 'user' ? 'justify-end' : 'justify-start');
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.classList.add(sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-bot');
+                bubbleDiv.innerText = text;
+                messageDiv.appendChild(bubbleDiv);
+                messagesContainer.appendChild(messageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            };
+
+            const intents = [
+                {
+                    tag: "greeting",
+                    patterns: ["hello", "hi", "hey", "greetings"],
+                    responses: ["Hello! I am here to assist you.", "Hi there! What can I do for you today?"]
+                },
+                {
+                    tag: "fund_request",
+                    patterns: ["i need a fund", "i need a fund for my treatment", "fund for treatment", "fund my treatment", "help me with my treatment fund", "help me to get fund"],
+                    responses: ["Okay, I can help with that. What is your full name?"]
+                }
+            ];
+
+            let conversationState = {
+                currentIntent: null,
+                data: {}
+            };
+
+            const getBotResponse = (message) => {
+                const lowerCaseMessage = message.toLowerCase();
+
+                if (conversationState.currentIntent === "fund_request") {
+                    if (!conversationState.data.name) {
+                        conversationState.data.name = message;
+                        return `Thank you, ${message}. What kind of treatment are you seeking?`;
+                    } else if (!conversationState.data.treatment_type) {
+                        conversationState.data.treatment_type = message;
+                        return "Thank you. To verify your situation, please provide a proof or report from a reputable hospital.";
+                    } else if (!conversationState.data.hospital_proof) {
+                        conversationState.data.hospital_proof = message;
+                        conversationState.currentIntent = null; 
+                        return `Thank you for the information. We have received your request and will connect you to an appropriate organization. We'll send you a confirmation message soon.`;
+                    }
+                }
+                
+                for (let intent of intents) {
+                    if (intent.patterns.some(pattern => lowerCaseMessage.includes(pattern))) {
+                        conversationState.currentIntent = intent.tag;
+                        conversationState.data = {}; 
+                        return intent.responses[Math.floor(Math.random() * intent.responses.length)];
+                    }
+                }
+                
+                return "I'm sorry, I don't understand. Can you please rephrase that?";
+            };
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const userMessage = input.value.trim();
+                if (!userMessage) return;
+
+                addMessage(userMessage, 'user');
+                
+                const botResponseText = getBotResponse(userMessage);
+                setTimeout(() => {
+                    addMessage(botResponseText, 'bot');
+                }, 500);
+
+                input.value = '';
+            });
+
+            patientBtn.addEventListener('click', () => {
+                patientView.classList.remove('hidden');
+                orgView.classList.add('hidden');
+                patientBtn.classList.add('bg-blue-500');
+                patientBtn.classList.remove('bg-gray-600');
+                orgBtn.classList.add('bg-gray-600');
+                orgBtn.classList.remove('bg-blue-500');
+            });
+
+            orgBtn.addEventListener('click', () => {
+                orgView.classList.remove('hidden');
+                patientView.classList.add('hidden');
+                orgBtn.classList.add('bg-blue-500');
+                orgBtn.classList.remove('bg-gray-600');
+                patientBtn.classList.add('bg-gray-600');
+                patientBtn.classList.remove('bg-blue-500');
+            });
+        });
+    </script>
+</body>
+</html>
+  
